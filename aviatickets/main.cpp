@@ -6,86 +6,39 @@
 //реализация с записью и чтением из DB
 
 
-#include "ConnectionDB.h"
-#include "RegUser.h"
 #include "Login.h"
-#include "Control.h"
-#include "Output.h"
+#include "Menu.h"
 
-using namespace std;
 
-void menuAdmin(Control& control, OutputAdmin& output)
+static void exeProgram()
 {
-    while (true)
-    {
-        cout << "\nMENU_ADMIN\n";
-        cout << "1-create ticket, 2-print all tickets, 3-delete a specific ticket,\n";
-        cout << "4-redaction ticket, 5-exit program\n";
-        int choice;
-        cin >> choice;
+    ManagementDB manDB;
+    Menu menu;
+    Authorization authoriz;
 
-        switch (choice)
-        {
-       // case 1: control.creatTicket(); break;
-        case 2: output.printTicket(); break;
-        case 3: control.deleteTicket(); break;
-        case 4: control.updateTicket(); break;
-        case 5: return;
-        }
-    }
-}
-
-void menuUser(Control& control, OutputUser& outputUser, int userId)
-{
-    while (true)
-    {
-        cout << "\nMENU_USER\n";
-        cout << "1-create ticket, 2-print ticket, 3-exit program\n";
-        int select;
-        cin >> select;
-
-        switch (select)
-        {
-        case 1: control.creatTicket(userId); break;
-        case 2: outputUser.printTicketUser(userId); break;
-        case 3: return;
-        }
-    }
-}
-
-void menuStart(Control& control, OutputAdmin& outputAdmin, OutputUser& outputUser)
-{
-    int select;
+    if(manDB.checkRows()==0) std::cout << "no data in table \"ticketsTable\"\n";
+    else ArrayTickets::arrayTickets = manDB.getDataTickets();
 
     while (true)
     {
-        cout << "WELCOME\n";
-        cout << "1-user login, 2-register, 3-admin login, 4-exit program\n";
+        int res = menu.menuStart();
 
-        cin >> select;
-
-        switch (select)
+        switch (res)
         {
-        case 1: { int userId = loginUser(); menuUser(control, outputUser, userId); break; }
-        case 2: { regUser(); break; }
-        case 3: { loginAdmin(); menuAdmin(control, outputAdmin); break; }
-        case 4:return;
+        case USERLOG: { int userId = authoriz.loginUser(); menu.menuUser(userId); break; }
+        case USERREG: { authoriz.regUser(); break; }
+        case ADMINLOG: { authoriz.loginAdmin(); menu.menuAdmin(); break; }
+        case EXIT: {  return; }
         }
     }
+    delete ConnectionDB::con;
 }
 
 
 
 int main()
 { 
-    connectionDB();
-
-    Control control;
-    OutputAdmin outputAdmin;
-    OutputUser outputUser;
-
-   menuStart(control, outputAdmin, outputUser);
-
+    exeProgram();
 
     return 0;
 }
