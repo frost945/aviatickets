@@ -5,11 +5,19 @@
 
 #include <iostream>
 
-#include "PasswordDB.h"
-
 #include "mysql_connection.h"
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 
-sql::Connection* connectionDB();
+#include "PasswordDB.h"
+
+class ConnectionDB
+{
+private:
+	static sql::Connection* connectionDB();
+
+public:
+	static sql::Connection* con;
+};
+
 #endif

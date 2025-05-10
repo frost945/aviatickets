@@ -1,87 +1,44 @@
 
 #include "Output.h"
-using namespace std;
 
+using std::cout; using std::endl;
 
-void OutputAdmin::printTicket()
+void OutputAdmin::readTickets()
 {
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
-    sql::ResultSet* result;
+    if (ArrayTickets::arrayTickets.size() == 0) {cout << "amount of tickets: 0" << endl; return;}
 
-    con = connectionDB();
+    cout << "\nList all tickets\n\n";
+    cout << "Ticket_Id\tDestination\tFlight number\tDeparture date\tUser_id\n";
 
-    pstmt = con->prepareStatement("SELECT * FROM ticketsTable");
-    result = pstmt->executeQuery();
+    for (auto& t : ArrayTickets::arrayTickets)
+        cout << t.getTicketId() << "\t\t" << t.getDestination() << "\t\t" << t.getFlightNo() << "\t\t" << t.getDepartDate() << "\t" << t.getUserId() << endl;
 
-    size_t amountTickets = result->rowsCount();
-    
-    cout << "amount of tickets: " << amountTickets << endl;
-
-    if (amountTickets != 0) //проверка на наличие строк в базе
-    {
-        cout << "\nList all tickets\n\n";
-        cout << "Id\tDestination\tFlight number\tFull name\tDeparture date\tUser_id\n";
-
-        while (result->next())
-        {
-            cout << result->getInt(1) << "\t" << result->getString(2) << "\t\t" << result->getInt(3) << "\t\t" << result->getString(4) << "\t\t" << result->getString(5) <<"\t"<<result->getInt(6)<< endl;
-        }
-    }
-
-    delete con;
-    delete pstmt;
-    delete result;
 }
 
-void OutputAdmin::printTicketbyNo(int ticket_id)
+void OutputAdmin::readTicketbyNo(int ticketId)
 {
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
-    sql::ResultSet* result;
+    cout << "Ticket_Id\tDestination\tFlight number\tDeparture date\tUser_id\n";
 
-    con = connectionDB();
-    pstmt = con->prepareStatement("SELECT * FROM ticketsTable WHERE id_ticket = ?");
-    pstmt->setInt(1, ticket_id);
-    result = pstmt->executeQuery();
+    for (auto& t : ArrayTickets::arrayTickets)
+        if (t.getTicketId() == ticketId)
+            cout << t.getTicketId() << "\t\t" << t.getDestination() << "\t\t" << t.getFlightNo() << "\t\t" << t.getDepartDate() << "\t" << t.getUserId() << endl;
 
-    result->next();
-    cout << "Id\tDestination\tFlight number\tFull name\tDeparture date\tUser_id\n";
-    cout << result->getInt(1) << "\t" << result->getString(2) << "\t\t" << result->getInt(3) << "\t\t" << result->getString(4) << "\t\t" << result->getString(5) << "\t" << result->getInt(6) << endl;
 
-    delete con;
-    delete pstmt;
-    delete result;
 }
 
-
-void OutputUser::printTicketUser(int user_id) 
+void OutputUser::readTickets(int userId)
 {
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
-    sql::ResultSet* result;
+    int count=0;
+    for (auto& t : ArrayTickets::arrayTickets)
+        if (t.getUserId() == userId) {++count; break;}
 
-    con = connectionDB();
-    pstmt = con->prepareStatement("SELECT * FROM ticketsTable WHERE user_id = ?");
-    pstmt->setInt(1, user_id);
-    result = pstmt->executeQuery();
+    if (count == 0) { cout << "amount of tickets: 0" << endl; return; }
 
-    size_t amountTickets = result->rowsCount();
+    cout << "\nlist of tickets user \n\n";
+    cout << "Ticket_Id\tDestination\tFlight number\tDeparture date\n";
 
-    cout << "amount of tickets: " << amountTickets << endl;
+    for ( auto& t : ArrayTickets::arrayTickets)
+        if(t.getUserId() == userId)
+            cout << t.getTicketId() << "\t\t" << t.getDestination() << "\t\t" << t.getFlightNo() << "\t\t" << t.getDepartDate() << endl;
 
-    if (amountTickets != 0) //проверка на наличие строк в базе
-    {
-        cout << "\nlist of tickets user \n\n";
-        cout << "Id\tDestination\tFlight number\tFull name\tDeparture date\n";
-
-        while (result->next())
-        {
-            cout << result->getInt(1) << "\t" << result->getString(2) << "\t\t" << result->getInt(3) << "\t\t" << result->getString(4) << "\t\t" << result->getString(5) << "\t" << endl;
-        }
-    }
-
-    delete con;
-    delete pstmt;
-    delete result;
 }

@@ -130,21 +130,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ArrayTickets.cpp" />
+    <ClCompile Include="ManagementDB.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Ticket.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Control.cpp" />
     <ClCompile Include="ConnectionDB.cpp" />
     <ClCompile Include="Login.cpp" />
     <ClCompile Include="Output.cpp" />
     <ClCompile Include="PasswordDB.cpp" />
-    <ClCompile Include="RegUser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ArrayTickets.h" />
+    <ClInclude Include="ManagementDB.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="Ticket.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="ConnectionDB.h" />
     <ClInclude Include="Login.h" />
     <ClInclude Include="Output.h" />
     <ClInclude Include="PasswordDB.h" />
-    <ClInclude Include="RegUser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

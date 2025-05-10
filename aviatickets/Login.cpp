@@ -1,25 +1,10 @@
 
 #include "Login.h"
 
-using namespace std;
+using std::cout; using std::cin; using std::string;
 
-/*int login()
-{
-	while (true)
-	{
-		cout << "login as user, press 1\n";
-		cout << "login as admin, press 2\n";
 
-		int select;
-		cin >> select;
-
-		if (select == 1) loginUser();
-		else if (select == 2) loginAdmin();
-		else cout << "repeat your selection: ";
-	}
-}*/
-
-void loginAdmin()
+void Authorization::loginAdmin()
 {
 	cout << "enter password: ";
 	int pasAdmin = 1024, pasInput;
@@ -38,54 +23,43 @@ void loginAdmin()
 }
 
 
-int loginUser()
+int Authorization::loginUser()
 {
-	sql::Connection* con;
 	sql::PreparedStatement* pstmt;
 	sql::ResultSet* result;
 
-	con = connectionDB();
-	pstmt = con->prepareStatement("select user_password from userstable");
-	result = pstmt->executeQuery();
-
-	cout << "enter password: ";
-	string pasInput, pasUser;
-
 	while (true)
 	{
-		cin >> pasInput;
+		cout << "enter password: ";
+		string pasUser;
+		cin >> pasUser;
 
-		while (result->next())
-		{
-			//cout << result->getString(1)<<endl;
-			pasUser = result->getString(1);
-			if (pasInput == pasUser)
-			{
-				cout << "login successful";     
-				delete con;
-				delete pstmt;
-				delete result; int userId=getUserId(pasUser);	return userId;
-			}
+		pstmt = ConnectionDB::con->prepareStatement("select exists (select user_password from userstable where user_password = ?)");
+		pstmt->setString(1, pasUser);
+		result = pstmt->executeQuery();
+
+		result->next();
+
+		if (result->getInt(1) != 0)
+		{	
+			cout << "login successful\n";
+			delete pstmt;
+			delete result; 
+			int userId = getUserId(pasUser);
+			return userId;
 		}
-		result->beforeFirst();// для того чтобы прогнать столбец паролей заново
-		cout << "wrong password, please try again\n";
+		else cout << "wrong password, please try again\n";
 	}
 }
 		
 		
-
-		
-
-		
 	
-int getUserId(std::string pasUser)
+int Authorization::getUserId(std::string pasUser)
 {
-	sql::Connection* con;
 	sql::PreparedStatement* pstmt;
 	sql::ResultSet* result;
 
-	con = connectionDB();
-	pstmt = con->prepareStatement("select user_id from userstable where user_password = ? ");
+	pstmt = ConnectionDB::con->prepareStatement("select user_id from userstable where user_password = ? ");
 	pstmt->setString(1, pasUser);
 	result=pstmt->executeQuery();
 
@@ -94,4 +68,41 @@ int getUserId(std::string pasUser)
 	//cout <<"userID " << userId << endl;//для проверки
 
 	return userId;
+}
+
+
+void Authorization::regUser()
+{
+	using std::cout; using std::cin; using std::string;
+
+	cout << "registration form\n";
+
+	cout << "enter name: ";
+	string userName;
+	cin >> userName;
+
+	cout << "\nenter last name: ";
+	string userLastName;
+	cin >> userLastName;
+
+	cout << "\nenter email: ";
+	string userEmail;
+	cin >> userEmail;
+
+	cout << "\nenter password: ";
+	string userPassword;
+	cin >> userPassword;
+
+	sql::PreparedStatement* pstmt;
+
+	pstmt = ConnectionDB::con->prepareStatement("INSERT INTO userstable (user_name, user_lastname, user_email, user_password) VALUES(?,?,?,?)");
+	pstmt->setString(1, userName);
+	pstmt->setString(2, userLastName);
+	pstmt->setString(3, userEmail);
+	pstmt->setString(4, userPassword);
+	pstmt->executeQuery();
+
+	cout << "user successfully created!\n\n";
+
+	delete pstmt;
 }

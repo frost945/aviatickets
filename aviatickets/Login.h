@@ -3,15 +3,18 @@
 #define LOGIN_H
 
 #include "ConnectionDB.h"
-
 #include <cppconn/prepared_statement.h>
 
-#include <iostream>
 
-//int login();
-int loginUser();
-void loginAdmin();
+class Authorization
+{
+private:
+	int getUserId(std::string pasUser);
+public:
+	int loginUser();
+	void loginAdmin();
+	void regUser();
+};
 
-int getUserId(std::string pasUser);
 #endif
 

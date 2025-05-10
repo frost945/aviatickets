@@ -1,33 +1,29 @@
-//#pragma once
 
 #ifndef CONTROL_H
 #define CONTROL_H
 
-#include "mysql_connection.h"
-#include <cppconn/resultset.h>
-#include <cppconn/prepared_statement.h>
-
 #include "Output.h"
-#include "ConnectionDB.h"
+#include "ManagementDB.h"
 
-#include <iostream>
-#include <cstring>
-
-class Control
+class ControlUser
 {
+private:
+
 public:
-    Control() {};
-
-    bool checkRows();
-
     void creatTicket(int userId);
     void deleteTicket();
-    int updateTicket();
+    void updateTicket();
 
-    void updateDestination(int id);
-    void updateFlightNumber(int id);
-    void updateFullName(int id);
-    void updateDepartureDate(int id);
+    void updateDestination(int ticketId);
+    void updateFlightNo(int ticketId);
+    void updateDepartureDate(int ticketId);
+    // void updateFullName(int ticketId);
+};
+
+class ControlAdmin:public ControlUser
+{
+public:
+    void creatTicket();
 };
 
 #endif

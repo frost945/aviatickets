@@ -1,192 +1,134 @@
 
 #include "Control.h"
 
-using namespace std;
+using std::cout; using std::cin; using std::string;
 
-bool Control::checkRows()
+
+void ControlUser::creatTicket(int userId)
 {
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
-    sql::ResultSet* result;
+    Ticket ticket;
 
-    con = connectionDB();
-    pstmt = con->prepareStatement("SELECT EXISTS(SELECT id_ticket FROM ticketsTable WHERE id_ticket = 1)");
-    result = pstmt->executeQuery();
-
-    result->next();
-    bool n;
-    n = result->getBoolean(1);
-   // cout <<"checkRows: " << n << endl;
-
-    delete con;
-    delete pstmt;
-    delete result;
-
-    return n;
-}
-
-
-void Control::creatTicket(int userId)
-{
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
-
-    con = connectionDB();
-    pstmt=con->prepareStatement("INSERT INTO ticketsTable (destination, flight_number, full_name, departure_date, user_id) VALUES(?,?,?,?,?)");
+    int ticketId = ++ArrayTickets::lastTicketId;
+    ticket.setTicketId(ticketId);
 
     cout << "write destination  ";
-    string destination;
-    cin >> destination; cout << "\n";
-    pstmt->setString(1, destination);
+    string dest;
+    cin >> dest;
+    ticket.setDestination(dest); 
 
-    cout << "write flightNumber  ";
-    int flightNumber;
-    cin >> flightNumber; cout << "\n";
-    pstmt->setInt(2, flightNumber);
-
-    cout << "write full Name  ";
-    string fullName;
-    cin >> fullName; cout << "\n";
-    pstmt->setString(3, fullName);
+    cout << "write flight Number  ";
+    int flightNo;
+    cin >> flightNo;
+    ticket.setFlightNo(flightNo);
 
     cout << "write departure Date  ";
-    string departureDate;
-    cin >> departureDate; cout << "\n";
-    pstmt->setString(4, departureDate);
+    string departDate;
+    cin >> departDate;
+    ticket.setDepartDate(departDate);
 
-    pstmt->setInt(5, userId);
-    pstmt->executeQuery();
+    ticket.setUserId(userId);
 
-    cout << "ticket successfully created!\n\n";
+    ArrayTickets::addTicket(ticket);
 
-    delete con;
-    delete pstmt;
+    ManagementDB managDB;
+    managDB.addTicket(ticket);
 }
 
-void Control::deleteTicket()
+void ControlUser::deleteTicket()
 {
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
-
-    if (checkRows()==0 )
-    {
-        cout << "no tickets\n"; return;
-    }
-
-        OutputAdmin output;
-        output.printTicket();
-        cout << "\nselect ticket to delete ";
-        int id;
-        cin >> id;
-
-        if (id>0)
-        {
-            con = connectionDB();
-            pstmt = con->prepareStatement("DELETE FROM ticketsTable WHERE id_ticket = ?");
-            pstmt->setInt(1, id);
-            pstmt->executeUpdate();
-            cout << "\nticket number " << id << " deleted\n";
-
-            delete con;
-            delete pstmt;
-        }
-}
-
- int Control::updateTicket()
-{
-    if (checkRows() == 0)
-    { cout << "no tickets\n"; return 0;}
+    if (ArrayTickets::arrayTickets.empty()) { cout << "no tickets\n"; return; }
 
     OutputAdmin outputAdmin;
-    outputAdmin.printTicket();
+    outputAdmin.readTickets();
+
+    cout << "\nselect ticket to delete ";
+    int ticketId;
+    cin >> ticketId;
+    
+    ArrayTickets::deleteTicket(ticketId);
+
+    ManagementDB managDB;
+    managDB.deleteTicket(ticketId);
+}
+
+ void ControlUser::updateTicket()
+{
+    OutputAdmin outputAdmin;
+    outputAdmin.readTickets();
 
     cout << "\nselect ticket for redaction ";
-    int id;
-    cin >> id;
-
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
-    sql::ResultSet* result;
+    int ticketId;
+    cin >> ticketId;
 
     while (true)//цикл для продолжения редактирования параметров билета
     {
-        /*/con = connectionDB();
-        pstmt = con->prepareStatement("SELECT * FROM ticketsTable WHERE id_ticket = ?");
-        pstmt->setInt(1, id);
-        result = pstmt->executeQuery();
-
-       // result->last();// ставим курсор в конец выбранной строки
-        result->next();
-        cout << "Id\tDestination\tFlight number\tFull name\tDeparture date\n";
-        cout << result->getInt(1) << "\t" << result->getString(2) << "\t\t" << result->getInt(3) << "\t\t" << result->getString(4) << "\t\t" << result->getString(5) << endl;*/
 
         OutputAdmin outputAdmin;
-        outputAdmin.printTicketbyNo(id);
+        outputAdmin.readTicketbyNo(ticketId);
 
         cout << "\nselect parameter for redaction\n";
-        cout << "1-destination, 2-flight number, 3-full name, 4-departure date\n";
+        cout << "1-destination, 2-flight number, 3-departure date\n";
 
-        int column;
-        cin >> column; //выбираем нужный столбец для редактирования
+        int param;
+        cin >> param; //выбираем нужный столбец для редактирования
 
-        switch (column)
+        switch (param)
         {
-        case 1: updateDestination(id); break;
-        case 2: updateFlightNumber(id); break;
-        case 3: updateFullName(id); break;
-        case 4: updateDepartureDate(id); break;
+        case 1: { updateDestination(ticketId); break; }
+        case 2: { updateFlightNo(ticketId); break; }
+        case 3: { updateDepartureDate(ticketId); break; }
         }
         cout << "press any key to continue, to exit press 'n': ";
         char ch;
         cin >> ch;
         if (ch == 'n') break;
     }
-        return id;
 }
 
-void Control::updateDestination(int id)
+void ControlUser::updateDestination(int ticketId)
 {
     cout << "enter new destination: ";
     string newDest;
     cin >> newDest;
 
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
+    for (auto& t : ArrayTickets::arrayTickets)
+        if (t.getTicketId() == ticketId)
+            t.setDestination(newDest);
 
-    con = connectionDB();
-    pstmt = con->prepareStatement("UPDATE ticketsTable SET destination = ? WHERE id_ticket = ?");
-    pstmt->setString(1, newDest);
-    pstmt->setInt(2, id);
-    pstmt->executeQuery();
-    
-    cout << "destination successfully changed to: " << newDest << "\n";
-
-    delete con;
-    delete pstmt;
+    ManagementDB managDB;
+    managDB.updateDestination(ticketId, newDest);
 }
 
-void Control::updateFlightNumber(int id)
+
+void ControlUser::updateFlightNo(int ticketId)
 {
     cout << "enter new flight number: ";
-    int newflight;
-    cin >> newflight;
+    int newflightNo;
+    cin >> newflightNo;
 
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
-
-    con = connectionDB();
-    pstmt = con->prepareStatement("UPDATE ticketsTable SET flight_number = ? WHERE id_ticket = ?");
-    pstmt->setInt(1, newflight);
-    pstmt->setInt(2, id);
-    pstmt->executeQuery();
-
-    cout << "flight number successfully changed to: " << newflight << "\n";
-
-    delete con;
-    delete pstmt;
+    for (auto& t : ArrayTickets::arrayTickets)
+        if (t.getTicketId() == ticketId)
+            t.setFlightNo(newflightNo);
+   
+    ManagementDB managDB;
+    managDB.updateFlightNo(ticketId, newflightNo);
 }
 
-void Control::updateFullName(int id)
+void ControlUser::updateDepartureDate(int ticketId)
+{
+    cout << "enter new departure date: ";
+    string newDepartDate;
+    cin >> newDepartDate;
+
+    for (auto& t : ArrayTickets::arrayTickets)
+        if (t.getTicketId() == ticketId)
+            t.setDepartDate(newDepartDate);
+
+    ManagementDB managDB;
+    managDB.updateDepartureDate(ticketId, newDepartDate);
+}
+
+/*void Control::updateFullName(int id)
 {
     cout << "enter new full name: ";
     string newname;
@@ -205,25 +147,41 @@ void Control::updateFullName(int id)
 
     delete con;
     delete pstmt;
-}
+}*/
 
-void Control::updateDepartureDate(int id)
+
+
+
+
+void ControlAdmin::creatTicket()
 {
-    cout << "enter new departure date: ";
-    string newdate;
-    cin >> newdate;
+    Ticket ticket;
 
-    sql::Connection* con;
-    sql::PreparedStatement* pstmt;
+    int ticketId = ++ArrayTickets::lastTicketId;
+    ticket.setTicketId(ticketId);
 
-    con = connectionDB();
-    pstmt = con->prepareStatement("UPDATE ticketsTable SET departure_date = ? WHERE id_ticket = ?");
-    pstmt->setString(1, newdate);
-    pstmt->setInt(2, id);
-    pstmt->executeQuery();
+    cout << "write destination  ";
+    string dest;
+    cin >> dest;
+    ticket.setDestination(dest);
 
-    cout << "departure date successfully changed to: " << newdate << "\n";
+    cout << "write flight Number  ";
+    int flightNo;
+    cin >> flightNo;
+    ticket.setFlightNo(flightNo);
 
-    delete con;
-    delete pstmt;
+    cout << "write departure Date  ";
+    string departDate;
+    cin >> departDate;
+    ticket.setDepartDate(departDate);
+
+    cout << "write userId: ";
+    int userId;
+    cin >> userId;
+    ticket.setUserId(userId);
+
+    ArrayTickets::addTicket(ticket);
+
+    ManagementDB managDB;
+    managDB.addTicket(ticket);
 }
